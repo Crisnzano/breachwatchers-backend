@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import pdfplumber
 from sentence_transformers import SentenceTransformer
 from transformers import pipeline
-from pinecone import Pinecone, ServerlessSpec
+import pinecone  # Updated import
 import tempfile
 import os
 from reportlab.lib.pagesizes import A4
@@ -22,17 +22,16 @@ app.add_middleware(
 )
 
 # Initialize Pinecone
-api_key = "pcsk_292Lko_55sw5PAf8MGQ5iVVLTutAN7bGf8bcsZ3wQcXLudLNrLtEUcSpG2DajvtyxcJnf9"
-pinecone_client = Pinecone(api_key=api_key)
+pinecone.init(api_key="pcsk_292Lko_55sw5PAf8MGQ5iVVLTutAN7bGf8bcsZ3wQcXLudLNrLtEUcSpG2DajvtyxcJnf9")
 index_name = "policy-compliance"
-if index_name not in pinecone_client.list_indexes().names():
-    pinecone_client.create_index(
+if index_name not in pinecone.list_indexes():
+    pinecone.create_index(
         name=index_name,
         dimension=384,
         metric="cosine",
-        spec=ServerlessSpec(cloud="aws", region="us-east-1")
+        pod_type="p1"  # Replace ServerlessSpec with 'p1' or another supported pod type
     )
-index = pinecone_client.Index(index_name)
+index = pinecone.Index(index_name)
 
 # Initialize Sentence-BERT model and QA pipeline
 model = SentenceTransformer('all-MiniLM-L6-v2')
@@ -64,7 +63,8 @@ def analyze_compliance(policy_text):
 
     for question in compliance_questions:
         # Query each question and get answers from top matches
-        results = index.query(vector=model.encode(question).tolist(), top_k=3, include_metadata=True)
+        query_vector = model.encode(question).tolist()
+        results = index.query(vector=query_vector, top_k=3, include_metadata=True)
         unique_answers = set()
         
         for match in results['matches']:
