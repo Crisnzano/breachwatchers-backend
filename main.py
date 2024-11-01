@@ -105,6 +105,10 @@ def save_report_as_pdf(answers, filename="compliance_report.pdf"):
     c.save()
     return file_path
 
+@app.get("/")
+async def root():
+    return {"message": "Welcome to the Compliance Analysis API"}
+
 @app.post("/analyze_policy")
 async def analyze_policy(file: UploadFile = File(...)):
     # Save uploaded file
