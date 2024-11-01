@@ -22,7 +22,7 @@ app.add_middleware(
 )
 
 # Initialize Pinecone
-api_key = ""
+api_key = "pcsk_292Lko_55sw5PAf8MGQ5iVVLTutAN7bGf8bcsZ3wQcXLudLNrLtEUcSpG2DajvtyxcJnf9"
 pinecone_client = Pinecone(api_key=api_key)
 index_name = "policy-compliance"
 if index_name not in pinecone_client.list_indexes().names():
