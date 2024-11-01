@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import pdfplumber
 from sentence_transformers import SentenceTransformer
 from transformers import pipeline
-import pinecone  # Updated import
+from pinecone import Pinecone, ServerlessSpec
 import tempfile
 import os
 from reportlab.lib.pagesizes import A4
@@ -21,17 +21,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize Pinecone
-pinecone.init(api_key="pcsk_292Lko_55sw5PAf8MGQ5iVVLTutAN7bGf8bcsZ3wQcXLudLNrLtEUcSpG2DajvtyxcJnf9")
+# Initialize Pinecone client
+api_key = "pcsk_292Lko_55sw5PAf8MGQ5iVVLTutAN7bGf8bcsZ3wQcXLudLNrLtEUcSpG2DajvtyxcJnf9"
+pinecone_client = Pinecone(api_key=api_key)
 index_name = "policy-compliance"
-if index_name not in pinecone.list_indexes():
-    pinecone.create_index(
+
+# Check if the index exists, and create it if it doesn't
+if index_name not in pinecone_client.list_indexes().names():
+    pinecone_client.create_index(
         name=index_name,
         dimension=384,
         metric="cosine",
-        pod_type="p1"  # Replace ServerlessSpec with 'p1' or another supported pod type
+        spec=ServerlessSpec(cloud="aws", region="us-east-1")
     )
-index = pinecone.Index(index_name)
+
+# Access the index
+index = pinecone_client.Index(index_name)
 
 # Initialize Sentence-BERT model and QA pipeline
 model = SentenceTransformer('all-MiniLM-L6-v2')
