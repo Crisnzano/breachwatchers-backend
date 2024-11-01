@@ -110,7 +110,8 @@ def save_report_as_pdf(answers, filename="compliance_report.pdf"):
     c.save()
     return file_path
 
-@app.get("/")
+@app.get("/", include_in_schema=False)
+@app.head("/", include_in_schema=False)
 async def root():
     return {"message": "Welcome to the Compliance Analysis API"}
 
